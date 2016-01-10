@@ -9,6 +9,12 @@ describe Vanity::Helpers do
         default "foo"
         metrics :coolness
       end
+
+      # Force participation in the experiment.
+      Vanity.context = stub( vanity_identity: 'quux' )
+      experiment(:foobar).choose
+      Vanity.context = nil
+
       Vanity.track!(:coolness, :identity=>'quux')
 
       assert_equal 1, experiment(:foobar).alternatives.sum(&:conversions)
@@ -21,6 +27,12 @@ describe Vanity::Helpers do
         default "foo"
         metrics :coolness
       end
+
+      # Force participation in the experiment.
+      Vanity.context = stub( vanity_identity: 'quux' )
+      experiment(:foobar).choose
+      Vanity.context = nil
+
       Vanity.track!(:coolness, :identity=>'quux', :values=>[2])
 
       assert_equal 2, experiment(:foobar).alternatives.sum(&:conversions)
