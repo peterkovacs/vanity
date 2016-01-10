@@ -172,8 +172,10 @@ module Vanity
         else
           participating = @participants.find_one(:experiment=>experiment, :identity=>identity, :seen=>alternative)
         end
-        @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :converted=>alternative } }, :upsert=>true) if implicit || participating
-        @experiments.update({ :_id=>experiment }, { "$inc"=>{ "conversions.#{alternative}"=>count } }, :upsert=>true)
+        if implicit || participating
+          @participants.update({ :experiment=>experiment, :identity=>identity }, { "$push"=>{ :converted=>alternative } }, :upsert=>true)
+          @experiments.update({ :_id=>experiment }, { "$inc"=>{ "conversions.#{alternative}"=>count } }, :upsert=>true)
+        end
       end
 
       def ab_get_outcome(experiment)

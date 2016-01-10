@@ -133,6 +133,7 @@ metric "Signups (Unlimited)" do
 end
 </pre>
 
+Note that the @after_create@ callback will only record a conversion if the current context shows an identity that participated in the experiment.  This means it will only measure conversions for records actually created in your controllers, and not in a background job, for example.
 
 h3(#ga).  Google Analytics
 
