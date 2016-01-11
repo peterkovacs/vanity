@@ -16,7 +16,7 @@ module Vanity
     # The use_vanity method will setup the controller to allow testing and
     # tracking of the current user.
     module UseVanity
-      # Defines the vanity_identity method and the set_identity_context filter.
+      # Defines the vanity_identity method and the vanity_identity_context filter.
       #
       # Call with the name of a method that returns an object whose identity
       # will be used as the Vanity identity if the user is not already
@@ -49,22 +49,25 @@ module Vanity
 
         if block
           define_method(:vanity_identity) { block.call(self) }
+          define_method(:reset_vanity_identity) do |*args|
+            raise "unable to clear block-specified use_vanity"
+          end
         else
+          cookie = lambda do |value|
+            result = {
+              value: value,
+              expires: Time.now + Vanity.configuration.cookie_expires,
+              path: Vanity.configuration.cookie_path,
+              domain: Vanity.configuration.cookie_domain,
+              secure: Vanity.configuration.cookie_secure,
+              httponly: Vanity.configuration.cookie_httponly
+            }
+            result[:domain] ||= ::Rails.application.config.session_options[:domain]
+            result
+          end
+
           define_method :vanity_identity do
             return @vanity_identity if @vanity_identity
-
-            cookie = lambda do |value|
-              result = {
-                value: value,
-                expires: Time.now + Vanity.configuration.cookie_expires,
-                path: Vanity.configuration.cookie_path,
-                domain: Vanity.configuration.cookie_domain,
-                secure: Vanity.configuration.cookie_secure,
-                httponly: Vanity.configuration.cookie_httponly
-              }
-              result[:domain] ||= ::Rails.application.config.session_options[:domain]
-              result
-            end
 
             # With user sign in, it's possible to visit not-logged in, get
             # cookied and shown alternative A, then sign in and based on
@@ -87,7 +90,29 @@ module Vanity
               @vanity_identity = "test"
             end
           end
+
+          define_method :reset_vanity_identity do |new_identity|
+            if new_identity
+              @vanity_identity = new_identity
+              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
+              @vanity_identity
+            elsif symbol && object = send(symbol)
+              @vanity_identity = object.id
+              cookies.delete(Vanity.configuration.cookie_name)
+              @vanity_identity
+            elsif response # typical use; generate a new identity
+              @vanity_identity = SecureRandom.hex(16)
+              cookies[Vanity.configuration.cookie_name] = cookie.call(@vanity_identity)
+              @vanity_identity
+            else # during functional testing
+              previous_identity = vanity_identity
+              @vanity_identity = "reset"
+              @vanity_identity
+            end
+          end
         end
+
+
         protected :vanity_identity
         around_filter :vanity_context_filter
         before_filter :vanity_reload_filter unless ::Rails.configuration.cache_classes
@@ -114,6 +139,10 @@ module Vanity
             end
           end
         end
+      end
+
+      def reset_vanity_identity(*args)
+        raise "unable to reset vanity_identity for use_vanity_mailer"
       end
       protected :use_vanity_mailer
     end

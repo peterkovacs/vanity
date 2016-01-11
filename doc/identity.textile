@@ -33,6 +33,19 @@ If you use either block or method name and they return @nil@, Vanity will fallba
 
 Note that @current_user@ in this case must return @nil@ for non-persisted accounts.  That is, @current_user.id@ *must* be non-@nil@.
 
+If at some point after using the persistent cookie mechanism, you need to force the identity to a new value (for example, after sign up or sign in), then you may call @reset_vanity_identity@ in your controller:
+
+<pre>
+class LoginController < ApplicationController
+  def create
+    # User is authenticated ... 
+    reset_vanity_identity( current_user.id )
+  end
+end
+</pre>
+
+If @nil@ is passed to @reset_vanity_identity@ then the cookie is deleted and the value provided by @vanity_identity@ will be used instead.  If non-@nil@ is provided, then a cookie will be set with this new identity.  *This will affect users even after they are signed out.*
+
 An identity can be anything.  For example, if you're running an experiment to test a new feature that will be available in some projects but not others, you'll want to slice the audience by project identifier, not user ID.
 
 You can also give each experiment a different identity using the @identify@ callback.  Here's an example that tells one experiment to use a project identifier:
