@@ -151,10 +151,12 @@ module Vanity
         if implicit
           alt[:participants] << identity
         else
-    participating = alt[:participants].include?(identity)
+          participating = alt[:participants].include?(identity)
         end
-        alt[:converted] << identity if implicit || participating
-        alt[:conversions] += count
+        if implicit || participating
+          alt[:converted] << identity
+          alt[:conversions] += count
+        end
       end
 
       def ab_get_outcome(experiment)

@@ -288,7 +288,7 @@ describe Vanity::Metric::ActiveRecord do
 
     assert_equal 3, Sky.count
     assert_equal 2, experiment.alternatives.map(&:participants).sum
-    assert_equal 3, experiment.alternatives.map(&:conversions).sum
+    assert_equal 2, experiment.alternatives.map(&:conversions).sum
   end
 
   it "do it yourself" do

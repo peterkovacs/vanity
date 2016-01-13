@@ -408,6 +408,7 @@ class AbTestTest < ActionController::TestCase
       metrics :coolness
       default false
     end
+    experiment(:abcd).choose
     Vanity.playground.track! :coolness
     assert_equal 1, experiment(:abcd).alternatives.sum(&:conversions)
   end

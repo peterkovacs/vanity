@@ -133,7 +133,7 @@ metric "Signups (Unlimited)" do
 end
 </pre>
 
-The @model@ specifier can also take an @:identity@ option.  @:identity:@ should be a @Proc@ that specifies how to fetch the identity of the experiment participant.  This is useful when constructing objects outside the ActionController context (perhaps in a background task).  However, note that your experiment participants may still be identified by their anonymous cookie identifier, if you started any experiments before the user was identifiable.
+The @model@ specifier can also take an @:identity@ option.  @:identity:@ should be a @Proc@ that specifies how to fetch the identity of the experiment participant.  This is useful when constructing objects outside the ActionController context (perhaps in a background task).  However, note that your experiment participants may still be identified by their anonymous cookie identifier, if you started any experiments before the user was identifiable.  If this is the case then these records will *not* properly record as conversions.
 
 This example will record conversions for the Account to which the Subscription belongs:
 

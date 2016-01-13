@@ -204,8 +204,10 @@ module Vanity
           else
             participating = @experiments.sismember("#{experiment}:alts:#{alternative}:participants", identity)
           end
-          @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity if implicit || participating
-          @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+          if implicit || participating
+            @experiments.sadd "#{experiment}:alts:#{alternative}:converted", identity
+            @experiments.incrby "#{experiment}:alts:#{alternative}:conversions", count
+          end
         end
       end
 
