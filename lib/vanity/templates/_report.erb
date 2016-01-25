@@ -1,36 +1,50 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <meta name="charset" content="utf-8">
+    <meta name="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= I18n.t('vanity.report', :timestamp=>I18n.l(Time.now, :format=>'%b %d %Y, %I:%M:%P')) %></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" type="text/css" />
     <style>
-      .vanity { margin: 2em auto; width: 40em; font-family: "Helvetica Neue", "Helvetica", "Verdana", sans-serif }
-      .vanity h1 { margin: 1em 0; border-bottom: 3px solid #ccc }
       <%= vanity_html_safe(File.read(Vanity.template("vanity.css"))) %>
     </style>
-    <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("jquery.min.js"))) %></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("flot.min.js"))) %></script>
+    <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("flot.time.min.js"))) %></script>
     <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("vanity.js"))) %></script>
     <% if respond_to?(:form_authenticity_token) %><script type="text/javascript">document.auth_token = "<%= form_authenticity_token %>"</script><% end %>
   </head>
   <body>
-    <div class="vanity">
+    <div class="vanity container-fluid">
       <% unless Vanity.playground.collecting? %>
-        <div class="alert collecting">
-          <%= I18n.t('vanity.not_collecting_data', :setting=>"<span style='font-family: courier'>Vanity.playground.collecting = true;</span>", :file=>"<span style='font-family: courier'>config/environments/[environment].rb</span>").html_safe %>
+        <div class="row">
+          <div class="alert-danger alert-dismissable alert collecting" role="alert">
+            <%= I18n.t('vanity.not_collecting_data', :setting=>"<span style='font-family: courier'>Vanity.playground.collecting = true;</span>", :file=>"<span style='font-family: courier'>config/environments/#{Rails.env}.rb</span>").html_safe %>
+          </div>
         </div>
       <% end %>
 
       <% if experiments_persisted %>
         <% if experiments.present? %>
-          <h2><%= I18n.t 'vanity.experiments' %></h2>
+          <h1><%= I18n.t 'vanity.experiments' %></h1>
           <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>experiments} %>
         <% end %>
 
         <% unless metrics.empty? %>
-          <h2><%= I18n.t 'vanity.metrics' %></h2>
+          <h1><%= I18n.t 'vanity.metrics' %></h1>
           <%= render :file=>Vanity.template("_metrics"), :locals=>{:metrics=>metrics, :experiments=>experiments} %>
         <% end %>
       <% else %>
-        <div class="alert persistance">
+        <div class="alert-danger alert persistance">
           <%= I18n.t 'vanity.experiments_out_of_sync' %>
         </div>
       <% end %>

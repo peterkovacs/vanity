@@ -3,31 +3,36 @@
 <% else %>
   <% status = 'status_completed' %>
 <% end %>
-<div class="inner <%= status %>">
-<h3>
-  <%=vanity_h experiment.name %><span class="type">(<%= experiment.class.friendly_name %>)</span>
-  <% if experiment.type == 'ab_test' && experiment.active? && experiment.playground.collecting? %>
-    <span class='enabled-links'>
-      <% action = experiment.enabled? ? :disable : :enable %>
-      
-      <% if experiment.enabled? %> <%= I18n.t( 'vanity.enabled' ) %> | <% end %>
-      <a title='<%=I18n.t( action, scope: 'vanity.act_on_this_experiment' )%>' href='#'
-         data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action, :e => experiment.id) %>'>
-        <%= action %></a>
-      <% if !experiment.enabled? %> | <%= I18n.t( 'vanity.disabled' ) %> <% end %>
-      
-    </span>
+<div class="col-xs-12 panel panel-default inner <%= status %>">
+  <h3>
+    <%=vanity_h experiment.name %>
+    <small class="type">(<%= experiment.class.friendly_name %>)</small>
+
+    <% if experiment.type == 'ab_test' && experiment.active? && experiment.playground.collecting? %>
+      <small>
+        <% action = experiment.enabled? ? :disable : :enable %>
+        <div class="pull-right enabled-links">
+          <% if experiment.enabled? %><span class="text-success"><%= I18n.t( 'vanity.enabled' ) %></span><% end %>
+          <% if !experiment.enabled? %><span class="text-warning"><%= I18n.t( 'vanity.disabled' ) %></span><% end %>
+        <a class="btn btn-warning btn-xs" href='#' data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action, :e => experiment.id) %>'>
+          <%= I18n.t( action, scope: 'vanity.act_on_this_experiment' ) %></a>
+        <a class="btn btn-danger btn-xs button reset" title="<%= I18n.t('vanity.reset') %>" href="#" data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>"><%= I18n.t 'vanity.reset' %></a>
+        </div>
+        
+      </small>
+    <% end %>
+  </h3>
+<%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p>#{vanity_h para}</p>}) }.join.html_safe %>
+  <% if flash.notice %>
+    <p>
+      <%= flash.notice %>
+    </p>
   <% end %>
-</h3>
-<%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p class="description">#{vanity_h para}</p>}) }.join.html_safe %>
-<% if flash.notice %>
-  <p>
-    <%= flash.notice %>
-  </p>
-<% end %>
-<a class="button reset" title="<%= I18n.t('vanity.reset') %>" href="#" data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>"><%= I18n.t 'vanity.reset' %></a>
-<%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
-<p class="meta">
-  <%= I18n.t('vanity.started_at', :timestamp=>I18n.l(experiment.created_at, :format=>'%a, %b %d')) %>
-  <%= ' | '+I18n.t('vanity.completed_at', :timestamp=>I18n.l(experiment.completed_at, :format=>'%a, %b %d')) unless experiment.active? %>
-</p>
+  <div class="panel-body">
+    <%= render :file => Vanity.template("_" + experiment.type), :locals => {:experiment => experiment} %>
+    <p class="meta text-muted">
+      <%= I18n.t('vanity.started_at', :timestamp=>I18n.l(experiment.created_at, :format=>'%a, %b %d')) %>
+      <%= ' | '+I18n.t('vanity.completed_at', :timestamp=>I18n.l(experiment.completed_at, :format=>'%a, %b %d')) unless experiment.active? %>
+    </p>
+  </div>
+</div>

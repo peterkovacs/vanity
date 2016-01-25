@@ -1,8 +1,8 @@
 en:
   vanity:
     act_on_this_experiment:
-      enable: 'Enable this experiment'
-      disable: 'Disable this experiment'
+      enable: 'Enable'
+      disable: 'Disable'
     best_alternative: '(%{probability}% this is best)'
     best_alternative_is_significant: 'With %{probability}% probability this result is statistically significant.'
     best_alternative_probability: 'With %{probability}% probability this result is the best.'
