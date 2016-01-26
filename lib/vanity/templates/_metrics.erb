@@ -1,13 +1,15 @@
-<ul class="metrics">
+<div class="row-fluid metrics">
   <% metrics.sort_by { |id, metric| metric.name }.each do |id, metric| %>
-    <li class="metric" id="metric_<%= id %>">
+    <div class="col-xs-12 metric panel panel-default" id="metric_<%= id %>">
       <%= render :file=>Vanity.template("_metric"), :locals=>{:id=>id, :metric=>metric} %>
-    </li>
+    </div>
   <% end %>
-</ul>
+</div>
 <form id="milestones">
   <% experiments.each do |id, experiment| %>
-    <label><input type="checkbox" name="milestone" data-start="<%= experiment.created_at.httpdate %>"
-      data-end="<%= (experiment.completed_at || Time.now).httpdate %>"><%=vanity_h experiment.name %></label>
+    <div class="form-group">
+      <label >
+        <input type="checkbox" name="milestone" data-start="<%= experiment.created_at.httpdate %>" data-end="<%= (experiment.completed_at || Time.now).httpdate %>"> <%=vanity_h experiment.name %></label>
+    </div>
   <% end %>
 </form>
