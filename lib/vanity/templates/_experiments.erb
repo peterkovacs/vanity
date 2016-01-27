@@ -1,5 +1,5 @@
 <% experiments.sort_by{|id, experiment| [ experiment.created_at.to_date, experiment.name ] }.reverse.each do |id, experiment| %>
   <div class="row-fluid experiment <%= experiment.type %>" id="experiment_<%=vanity_h id.to_s %>">
-    <%= render :file => Vanity.template("_experiment"), :locals => { :id => id, :experiment => experiment } %>
+    <%= render :file => Vanity.template("_#{experiment.type}"), :locals => { :id => id, :experiment => experiment } %>
   </div>
 <% end %>

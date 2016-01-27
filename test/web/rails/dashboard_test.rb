@@ -32,16 +32,16 @@ class RailsDashboardTest < ActionController::TestCase
   def test_index
     get :index
     assert_response :success
-    assert @response.body =~ %r{div class="vanity"}
-    assert @response.body =~ %r{<h2>Experiments</h2>}
-    assert @response.body =~ %r{<h2>Metrics</h2>}
+    assert @response.body =~ %r{div class="vanity container-fluid"}
+    assert @response.body =~ %r{<h1>Experiments</h1>}
+    assert @response.body =~ %r{<h1>Metrics</h1>}
   end
 
   def test_index_not_collecting
     Vanity.playground.collecting = false
     get :index
     assert_response :success
-    assert @response.body =~ %r{<div class="alert collecting">}
+    assert @response.body =~ %r{<div class="alert-danger alert collecting">}
   end
 
   def test_index_not_persisted
@@ -52,7 +52,7 @@ class RailsDashboardTest < ActionController::TestCase
 
     get :index
     assert_response :success
-    assert @response.body =~ %r{<div class="alert persistance">}
+    assert @response.body =~ %r{<div class="alert-danger alert persistance">}
 
     Vanity.playground.experiments.delete(id)
   end

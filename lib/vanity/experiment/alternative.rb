@@ -4,14 +4,14 @@ module Vanity
     # One of several alternatives in an A/B test (see AbTest#alternatives).
     class Alternative
 
-      def initialize(experiment, id, value) #, participants, converted, conversions)
-        @experiment = experiment
+      def initialize(version, id, value) #, participants, converted, conversions)
+        @version = version
         @id = id
         @name = I18n.t('vanity.option_number', :char=>(@id + 65).chr.upcase)
         @value = value
       end
 
-      # Alternative id, only unique for this experiment.
+      # Alternative id, only unique for this version.
       attr_reader :id
 
       # Alternative name (option A, option B, etc).
@@ -20,8 +20,12 @@ module Vanity
       # Alternative value.
       attr_reader :value
 
-      # Experiment this alternative belongs to.
-      attr_reader :experiment
+      # Version this alternative belongs to.
+      attr_reader :version
+
+      def experiment
+        version.experiment
+      end
 
       # Number of participants who viewed this alternative.
       def participants
@@ -70,7 +74,7 @@ module Vanity
       end
 
       def ==(other)
-        other && id == other.id && experiment == other.experiment
+        other && id == other.id && version == other.version
       end
 
       def to_s
@@ -81,16 +85,20 @@ module Vanity
         "#{name}: #{value} #{converted}/#{participants}"
       end
 
+      def fingerprint
+        Digest::MD5.hexdigest("#{version.id}:#{id}")[-10,10]
+      end
+
       def load_counts
-        if @experiment.playground.collecting?
-          @participants, @converted, @conversions = @experiment.playground.connection.ab_counts(@experiment.id, id).values_at(:participants, :converted, :conversions)
+        if @version.playground.collecting?
+          @participants, @converted, @conversions = @version.playground.connection.ab_counts(@version.id, id).values_at(:participants, :converted, :conversions)
         else
           @participants = @converted = @conversions = 0
         end
       end
 
       def default?
-        @experiment.default == self
+        @version.default == self
       end
     end
   end

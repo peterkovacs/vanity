@@ -368,36 +368,36 @@ module Vanity
         # make the user confirm before completing an experiment
         if confirmed && confirmed.to_i==alt.id && exp.active?
           exp.complete!(alt.id)
-          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+          render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
         else
           @to_confirm = alt.id
-          render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+          render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
         end
       end
 
       def disable
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = false
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
       end
       
       def enable
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.enabled = true
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
       end
 
       def chooses
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.chooses(exp.alternatives[params[:a].to_i].value)
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
       end
 
       def reset
         exp = Vanity.playground.experiment(params[:e].to_sym)
         exp.reset
         flash[:notice] = I18n.t 'vanity.experiment_has_been_reset', name: exp.name
-        render :file=>Vanity.template("_experiment"), :locals=>{:experiment=>exp}
+        render :file=>Vanity.template("_#{exp.type}"), :locals=>{:experiment=>exp}
       end
 
       include AddParticipant

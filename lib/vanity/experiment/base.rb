@@ -56,7 +56,7 @@ module Vanity
 
       # Time stamp when experiment was created.
       def created_at
-        @created_at ||= connection.get_experiment_created_at(@id)
+        @created_at ||= connection.get_experiment_created_at(id)
       end
 
       # Time stamp when experiment was completed.
@@ -131,32 +131,32 @@ module Vanity
       def complete!(outcome = nil)
         @playground.logger.info "vanity: completed experiment #{id}"
         return unless @playground.collecting?
-        connection.set_experiment_completed_at @id, Time.now
-        @completed_at = connection.get_experiment_completed_at(@id)
+        connection.set_experiment_completed_at id, Time.now
+        @completed_at = connection.get_experiment_completed_at(id)
       end
 
       # Time stamp when experiment was completed.
       def completed_at
-        @completed_at ||= connection.get_experiment_completed_at(@id)
+        @completed_at ||= connection.get_experiment_completed_at(id)
       end
 
       # Returns true if experiment active, false if completed.
       def active?
-        !@playground.collecting? || !connection.is_experiment_completed?(@id)
+        !@playground.collecting? || !connection.is_experiment_completed?(id)
       end
 
       # -- Store/validate --
 
       # Get rid of all experiment data.
       def destroy
-        connection.destroy_experiment @id
+        connection.destroy_experiment id
         @created_at = @completed_at = nil
       end
 
       # Called by Playground to save the experiment definition.
       def save
         return unless @playground.collecting?
-        connection.set_experiment_created_at @id, Time.now
+        connection.set_experiment_created_at id, Time.now
       end
       
       # -- Filtering Particpants --
@@ -173,11 +173,11 @@ module Vanity
         @request_filter_block = block
       end
 
-    protected
-
       def identity
         @identify_block.call(Vanity.context)
       end
+
+    protected
 
       def default_identify(context)
         raise "No Vanity.context" unless context
@@ -202,7 +202,7 @@ module Vanity
       #   key => "vanity:experiments:green_button"
       #   key("participants") => "vanity:experiments:green_button:participants"
       def key(name = nil)
-        "#{@id}:#{name}"
+        "#{id}:#{name}"
       end
 
       # Shortcut for Vanity.playground.connection

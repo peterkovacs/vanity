@@ -50,6 +50,15 @@ class AbTestTest < ActionController::TestCase
       alternatives "foo", "bar"
       default "foo"
       metrics :coolness
+      version 1 do
+        alternatives "foo"
+        default "foo"
+      end
+    end
+    new_ab_test :two do
+      alternatives "foo", "bar"
+      default "foo"
+      metrics :coolness
     end
   end
 
@@ -63,10 +72,41 @@ class AbTestTest < ActionController::TestCase
     assert_equal experiment(:abcd).alternatives[3], experiment(:abcd).alternative(:d)
   end
 
+  def test_returning_version_alternative_by_value
+    new_ab_test :abcd do
+      alternatives :a, :b, :c, :d
+      default :a
+      metrics :coolness
+      version 1 do
+        alternatives :b, :c, :d, :e
+        default :b
+      end
+      version 1
+    end
+    assert_equal experiment(:abcd).alternatives[1], experiment(:abcd).alternative(:c)
+    assert_equal experiment(:abcd).alternatives[3], experiment(:abcd).alternative(:e)
+  end
+
   def test_alternative_name
     new_ab_test :abcd do
       alternatives :a, :b
       default :a
+      metrics :coolness
+    end
+    assert_equal "option A", experiment(:abcd).alternative(:a).name
+    assert_equal "option B", experiment(:abcd).alternative(:b).name
+  end
+
+  def test_alternative_name_in_version
+    new_ab_test :abcd do
+      alternatives :a, :b
+      default :a
+
+      version 1 do
+        alternatives :a, :b
+        default :a
+      end
+      version 1
       metrics :coolness
     end
     assert_equal "option A", experiment(:abcd).alternative(:a).name
@@ -86,6 +126,26 @@ class AbTestTest < ActionController::TestCase
     end
     fingerprints = Vanity.playground.experiments.map { |id, exp| exp.alternatives.map { |alt| exp.fingerprint(alt) } }.flatten
     assert_equal 4, fingerprints.uniq.size
+  end
+
+  def test_alternative_fingerprint_is_unique_across_versions
+    new_ab_test :ab do
+      metrics :coolness
+      alternatives :a, :b
+      default :a
+
+      version 1 do
+        alternatives :a, :b
+        default :a
+      end
+      version 2 do
+        alternatives :a, :b
+        default :a
+      end
+      version 2
+    end
+    fingerprints = Vanity.playground.experiments.flat_map { |id, exp| exp.versions.flat_map{ |version| version.alternatives.map { |alt| exp.fingerprint(alt) } } }
+    assert_equal 6, fingerprints.uniq.size
   end
 
   def test_alternative_fingerprint_is_consistent
@@ -111,6 +171,22 @@ class AbTestTest < ActionController::TestCase
     assert_equal exp.default, exp.alternative(:b)
   end
 
+  def test_ab_version_has_default
+    new_ab_test :ice_cream_flavor do
+      metrics :coolness
+      alternatives :a, :b, :c
+      default :b
+
+      version 1 do
+        alternatives :a, :b, :c
+        default :c
+      end
+      version 1
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:c)
+  end
+
   def test_ab_sets_default_default
     new_ab_test :ice_cream_flavor do
       metrics :coolness
@@ -119,6 +195,21 @@ class AbTestTest < ActionController::TestCase
     end
     exp = experiment(:ice_cream_flavor)
     assert_equal exp.default, exp.alternative(:a)
+  end
+
+  def test_ab_sets_default_default_for_version
+    new_ab_test :ice_cream_flavor do
+      metrics :coolness
+      alternatives :a, :b, :c
+      default :a
+      version 1 do
+        alternatives :one, :two, :three
+        # no default specified
+      end
+      version 1
+    end
+    exp = experiment(:ice_cream_flavor)
+    assert_equal exp.default, exp.alternative(:one)
   end
 
   def test_ab_overrides_unknown_default
@@ -184,24 +275,6 @@ class AbTestTest < ActionController::TestCase
   
   
   # -- Experiment Enabled/disabled --
-  
-  # @example new test should be enabled regardless of collecting?
-  #   regardless_of "Vanity.playground.collecting" do
-  #     assert (new_ab_test :test).enabled?
-  #   end
-  def regardless_of(attr_name, &block)
-    prev_val = eval "#{attr_name}?"
-    
-    eval "#{attr_name}=true"
-    block.call(eval "#{attr_name}?")
-    nuke_playground
-    
-    eval "#{attr_name}=false"
-    block.call(eval "#{attr_name}?")
-    nuke_playground
-    
-    eval "#{attr_name}=prev_val"
-  end
   
   def test_new_test_is_disabled_when_experiments_start_enabled_is_false
     Vanity.configuration.experiments_start_enabled = false
@@ -358,6 +431,27 @@ class AbTestTest < ActionController::TestCase
     end
     assert_equal results, [true, false].to_set
   end
+
+  def test_choose_random_from_version_when_enabled
+    metric "Coolness"
+
+    exp = new_ab_test :test do 
+      metrics :coolness
+      true_false
+      default false
+      version 1 do
+        alternatives :a, :b
+        default :a
+      end
+      version 1
+      identify { rand }
+    end
+    results = Set.new
+    100.times do
+      results << exp.choose.value
+    end
+    assert_equal results, [:a, :b].to_set
+  end
   
   def test_choose_default_when_disabled
     exp = new_ab_test :test do
@@ -371,6 +465,25 @@ class AbTestTest < ActionController::TestCase
       assert_equal 3, exp.choose.value
     end
   end
+
+  def test_choose_default_from_version_when_disabled
+    exp = new_ab_test :test do
+      metrics :coolness
+      alternatives 0, 1, 2, 3, 4, 5
+      default 3
+
+      version 1 do
+        alternatives 10, 11, 12, 13, 14, 15
+        default 13
+      end
+      version 1
+    end
+    
+    exp.enabled = false
+    100.times.each do
+      assert_equal 13, exp.choose.value
+    end
+  end
   
   def test_choose_outcome_when_finished
     exp = new_ab_test :test do
@@ -382,6 +495,26 @@ class AbTestTest < ActionController::TestCase
     exp.complete!
     100.times.each do
       assert_equal 5, exp.choose.value
+    end
+  end
+
+  def test_choose_outcome_from_version_when_finished
+    exp = new_ab_test :test do
+      metrics :coolness
+      alternatives 0,1,2,3,4,5
+      default 3
+      outcome_is { alternative(5) }
+
+      version 1 do
+        alternatives 10,11,12,13,14,15
+        default 13
+        outcome_is { alternative(15) }
+      end
+      version 1
+    end
+    exp.complete!
+    100.times.each do
+      assert_equal 15, exp.choose.value
     end
   end
   
@@ -585,7 +718,7 @@ class AbTestTest < ActionController::TestCase
     altered_alts = experiment(:foobar).alternatives
     altered_alts[0].probability=30
     altered_alts[1].probability=70
-    experiment(:foobar).set_alternative_probabilities altered_alts
+    experiment(:foobar).version.set_alternative_probabilities altered_alts
     alts = Array.new(600) { experiment(:foobar).choose.value }
     assert_equal %w{bar foo}, alts.uniq.sort
     assert_in_delta alts.select { |a| a == altered_alts[0].value }.size, 200, 60 # this may fail, such is propability
@@ -640,7 +773,7 @@ class AbTestTest < ActionController::TestCase
         Struct.new(:alts,:method).new(altered_alts,:bayes_bandit_score)
       end
       def use_probabilities
-        @use_probabilities
+        @version.instance_variable_get(:@use_probabilities)
       end
     end
     experiment(:foobar).rebalance!
@@ -1198,6 +1331,7 @@ This experiment did not run long enough to find a clear winner.
       metrics :coolness
       default false
     end
+
     # Run experiment to completion (100 participants)
     results = Set.new
     100.times do
@@ -1246,7 +1380,7 @@ This experiment did not run long enough to find a clear winner.
       default false
     end
     e = experiment(:quick)
-    e.expects(:warn)
+    e.version.expects(:warn)
     assert_nothing_raised do
       e.complete!
     end
@@ -1525,6 +1659,34 @@ This experiment did not run long enough to find a clear winner.
     experiment(:simple).reset
     assert_nil experiment(:simple).outcome
     assert_nil experiment(:simple).completed_at
+  end
+
+  # -- Version --
+
+  def test_has_versions
+    new_ab_test :versioned do
+      metrics :coolness
+
+      alternatives :a, :b, :c
+      default :a
+
+      identify { rand }
+
+      version 1 do
+        alternatives :b, :c, :d
+        default :b
+      end
+      version 2 do
+        alternatives :c, :d, :e
+        default :c
+      end
+      version 1
+    end
+
+    assert_equal [:b,:c,:d], experiment(:versioned).alternatives.map(&:value)
+
+    results = Array.new(100) { experiment(:versioned).choose.value }
+    assert_equal Set.new([:b,:c,:d]), results.to_set
   end
 
 

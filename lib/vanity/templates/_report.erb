@@ -27,7 +27,7 @@
     <div class="vanity container-fluid">
       <% unless Vanity.playground.collecting? %>
         <div class="row">
-          <div class="alert-danger alert-dismissable alert collecting" role="alert">
+          <div class="alert-danger alert collecting">
             <%= I18n.t('vanity.not_collecting_data', :setting=>"<span style='font-family: courier'>Vanity.playground.collecting = true;</span>", :file=>"<span style='font-family: courier'>config/environments/#{Rails.env}.rb</span>").html_safe %>
           </div>
         </div>

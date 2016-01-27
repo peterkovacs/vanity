@@ -1,61 +1,110 @@
-<% score = experiment.calculate_score %>
-<div class="table-responsive">
-<table class="table table-striped">
-  <caption>
-    <%= experiment.conclusion(score).join(" ") %>
-    <% if experiment.active? && !experiment.enabled? %>
-      <div class='disabled_info'><%=I18n.t('vanity.experiment_has_been_disabled', name: experiment.default.name)%></div>
-    <% end %>
-  </caption>
+<% experiment.versions.each do |version| %>
+  <div class="panel inner <%= version.active? && version.enabled? ? 'panel-success status_enabled' : version.active? ? 'panel-default status_disabled' : 'panel-info status_completed' %> <%= "version hidden panel-warning" if version != experiment.version %>">
+    <div class="panel-heading">
+    <h3>
+      <%=vanity_h version.name %>
+      <small class="type">(<%= experiment.class.friendly_name %>)</small>
 
-  <tr class="header">
-    <th>Alternative</th>
-    <th>Participants</th>
-    <th>Conversions</th>
-    <th>Rate</th>
-  </tr>
-
-  <% score.alts.each do |alt| %>
-    <tr class="<%= "choice" if score.choice == alt %>">
-      <td class="alternative">
-        <% if alt.default? %>
-          <span class="glyphicon glyphicon-star" title="<%=I18n.t('vanity.default')%>"></span>
-        <% end %>
-        <% if experiment.showing?(alt) %>
-          <span class="glyphicon glyphicon-eye-open" title="<%=I18n.t('vanity.currently_shown')%>"></span>
-        <% end %>
-
-        <code><%= vanity_h alt.value.to_s %></code>
-        <% if @to_confirm == alt.id %>
-          <div class="alert alert-danger alert-dismissable" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <%=I18n.t('vanity.complete_and_confirm_experiment_label', :name=>alt.name)%>
-            <a class="btn btn-danger btn-med button chooses" href="#" data-id="<%=experiment.id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id, :confirmed=>alt.id)%>" title="<%=I18n.t('vanity.complete_and_confirm_experiment', name: alt.name)%>"><%=I18n.t('vanity.confirm')%></a>
+      <% if version == experiment.version && version.active? && experiment.playground.collecting? %>
+        <small>
+          <% action = version.enabled? ? :disable : :enable %>
+          <div class="pull-right enabled-links">
+            <% if version.enabled? %><span class="text-success"><%= I18n.t( 'vanity.enabled' ) %></span><% end %>
+            <% if !version.enabled? %><span class="text-warning"><%= I18n.t( 'vanity.disabled' ) %></span><% end %>
+            <a class="btn btn-warning btn-xs" href='#' data-id='<%= experiment.unversioned_id %>' data-url='<%= url_for(:action=>action, :e => experiment.unversioned_id) %>'>
+              <%= I18n.t( action, scope: 'vanity.act_on_this_experiment' ) %></a>
+            <a class="btn btn-danger btn-xs button reset" title="<%= I18n.t('vanity.reset') %>" href="#" data-id="<%= experiment.unversioned_id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.unversioned_id) %>"><%= I18n.t 'vanity.reset' %></a>
           </div>
-        <% end %>
-        <ul class="actions nav nav-pills">
-          <% if experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
-            <% if !experiment.showing?(alt) %>
-              <li><a class="button chooses" title="<%=I18n.t('vanity.choose_experiment')%> href="#" data-id="<%=experiment.id%> data-url="<%=url_for(:action=>:chooses, :e=>experiment.id, :a=>alt.id)%>"><%=I18n.t('vanity.show_me')%></a></li>
+        </small>
+      <% end %>
+    </h3>
+    <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p>#{vanity_h para}</p>}) }.join.html_safe %>
+    </div>
+    <% if flash.notice %>
+      <div class="alert alert-info">
+        <%= flash.notice %>
+      </div>
+    <% end %>
+      <% score = version.calculate_score %>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <caption>
+            <%= version.conclusion(score).join(" ") %>
+            <% if version.active? && !version.enabled? %>
+              <div class='disabled_info'><%=I18n.t('vanity.experiment_has_been_disabled', name: version.default.name)%></div>
             <% end %>
-            <li>
-              <a class="button chooses" title="<%=I18n.t('vanity.complete_experiment', :name=>alt.name)%>" href="#" data-id="<%=experiment.id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.id, :a=>alt.id)%>"><%=I18n.t('vanity.make_permanent')%></a>
-            </li>
+          </caption>
+
+          <tr class="header">
+            <th>Alternative</th>
+            <th>Participants</th>
+            <th>Conversions</th>
+            <th>Rate</th>
+          </tr>
+
+          <% score.alts.each do |alt| %>
+            <tr class="<%= "choice" if score.choice == alt %>">
+              <td class="alternative">
+                <% if alt.default? %>
+                  <span class="glyphicon glyphicon-star" title="<%=I18n.t('vanity.default')%>"></span>
+                <% end %>
+                <% if version.showing?(alt) %>
+                  <span class="glyphicon glyphicon-eye-open" title="<%=I18n.t('vanity.currently_shown')%>"></span>
+                <% end %>
+
+                <% if alt.value.respond_to?(:html) %>
+                  <%= alt.value.html %>
+                <% else %>
+                  <code><%= vanity_h alt.value.to_s %></code>
+                <% end %>
+
+                <% if @to_confirm == alt.id %>
+                  <div class="alert alert-danger alert-dismissable" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <%=I18n.t('vanity.complete_and_confirm_experiment_label', :name=>alt.name)%>
+                    <a class="btn btn-danger btn-med button chooses" href="#" data-id="<%=version.id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.unversioned_id, :a=>alt.id, :confirmed=>alt.id)%>" title="<%=I18n.t('vanity.complete_and_confirm_experiment', name: alt.name)%>"><%=I18n.t('vanity.confirm')%></a>
+                  </div>
+                <% end %>
+                <ul class="actions nav nav-pills">
+                  <% if version == experiment.version && experiment.enabled? && experiment.active? && respond_to?(:url_for) %>
+                    <% if !experiment.showing?(alt) %>
+                      <li><a class="button chooses" title="<%=I18n.t('vanity.choose_experiment')%>" href="#" data-id="<%=experiment.unversioned_id%>" data-url="<%=url_for(:action=>:chooses, :e=>experiment.unversioned_id, :a=>alt.id)%>"><%=I18n.t('vanity.show_me')%></a></li>
+                    <% end %>
+                    <li>
+                      <a class="button chooses" title="<%=I18n.t('vanity.complete_experiment', :name=>alt.name)%>" href="#" data-id="<%=experiment.unversioned_id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.unversioned_id, :a=>alt.id)%>"><%=I18n.t('vanity.make_permanent')%></a>
+                    </li>
+                  <% end %>
+                </ul>
+                    
+              </td>
+              <td class="value participants"><%=alt.participants%></td>
+              <td class="value converted"><%=alt.converted%></td>
+              <td class="value rate">
+                <span class="conversion-rate"><%= "%.1f%%" % [alt.conversion_rate * 100] %></span>
+                <br/>
+                <span class="explanation">
+                  <%= I18n.t('vanity.best_alternative', :probabilty=>alt.probability.to_i) if score.method == :bayes_score %>
+                  <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
+                </span>
+              </td>
+            </tr>
           <% end %>
-        </ul>
-            
-      </td>
-      <td class="value participants"><%=alt.participants%></td>
-      <td class="value converted"><%=alt.converted%></td>
-      <td class="value rate">
-        <span class="conversion-rate"><%= "%.1f%%" % [alt.conversion_rate * 100] %></span>
-        <br/>
-        <span class="explanation">
-          <%= I18n.t('vanity.best_alternative', :probabilty=>alt.probability.to_i) if score.method == :bayes_score %>
-          <%= I18n.t('vanity.better_alternative_than', :probability=>alt.difference.to_i, :alternative=>score.least.name) if alt.difference && alt.difference >= 1 %>
-        </span>
-      </td>
-    </tr>
-  <% end %>
-</table>
-</div>
+        </table>
+
+    </div>
+    <div class="meta text-muted panel-footer">
+      <%= I18n.t('vanity.started_at', :timestamp=>I18n.l(version.created_at, :format=>'%a, %b %d')) %>
+      <% unless version.active? %>
+        | <%= I18n.t('vanity.completed_at', :timestamp=>I18n.l(version.completed_at, :format=>'%a, %b %d')) %>
+      <% end %>
+
+      <% if version == experiment.version && experiment.versions.size > 1 %>
+        <div class="pull-right">
+          <a href="#" data-experiment="experiment_<%=experiment.unversioned_id%>" class="btn btn-default btn-xs button versions">
+            Toggle versions
+          </a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
