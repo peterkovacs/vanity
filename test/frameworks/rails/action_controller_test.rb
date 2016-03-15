@@ -95,13 +95,13 @@ class UseVanityControllerTest < ActionController::TestCase
   end
 
   def test_vanity_identity_set_from_user
-    @controller.current_user = stub("user", :id=>"user_id")
+    @controller.current_user = stub("user", :to_param=>"user_id")
     get :index
     assert_equal "user_id", @controller.send(:vanity_identity)
   end
 
   def test_vanity_identity_with_null_user_falls_back_to_cookie
-    @controller.current_user = stub("user", :id=>nil)
+    @controller.current_user = stub("user", :to_param=>nil)
     get :index
     assert cookies["vanity_id"] =~ /^[a-f0-9]{32}$/
   end
@@ -136,7 +136,7 @@ class UseVanityControllerTest < ActionController::TestCase
       use_vanity(:current_user) { |controller| controller.project_id }
     end
     @controller.project_id = "576"
-    @controller.current_user = stub(:id=>"user_id")
+    @controller.current_user = stub(:to_param=>"user_id")
 
     get :index
     assert_equal "576", @controller.send(:vanity_identity)
@@ -151,7 +151,7 @@ class UseVanityControllerTest < ActionController::TestCase
 
   def test_vanity_identity_prefers_cookie_over_object
     @request.cookies['vanity_id'] = "from_last_time"
-    @controller.current_user = stub(:id=>"user_id")
+    @controller.current_user = stub(:to_param=>"user_id")
     get :index
     assert_equal "from_last_time", @controller.send(:vanity_identity)
   end

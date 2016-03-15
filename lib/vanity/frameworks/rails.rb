@@ -90,7 +90,7 @@ module Vanity
         return unless method_name
 
         object = send(method_name)
-        object.try(:id)
+        object.try(:to_param)
       end
       private :vanity_identity_from_method
 
