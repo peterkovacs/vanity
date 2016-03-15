@@ -45,10 +45,10 @@ module Vanity
       def name
         @version.name
       end
-        
+
       # -- Default --
 
-      # Call this method once to set a default alternative. Call without 
+      # Call this method once to set a default alternative. Call without
       # arguments to obtain the current default. If default is not specified,
       # the first alternative is used.
       #
@@ -65,12 +65,12 @@ module Vanity
       end
 
       # -- Enabled --
-      
+
       # Returns true if experiment is enabled, false if disabled.
       def enabled?
-        !@playground.collecting? || ( active? && connection.is_experiment_enabled?(id) )
+        !@playground.collecting? || (active? && connection.is_experiment_enabled?(id))
       end
-      
+
       # Enable or disable the experiment. Only works if the playground is collecting
       # and this experiment is enabled.
       #
@@ -80,8 +80,10 @@ module Vanity
       def enabled=(bool)
         return unless @playground.collecting? && active?
         if @version.created_at.nil?
-          warn 'DB has no created_at for this experiment! This most likely means' + 
-               'you didn\'t call #save before calling enabled=, which you should.'
+          Vanity.logger.warn( 
+            'DB has no created_at for this experiment! This most likely means' + 
+            'you didn\'t call #save before calling enabled=, which you should.'
+          )
         else
           connection.set_experiment_enabled(id, bool)
         end
@@ -286,7 +288,7 @@ module Vanity
             connection.ab_not_showing id, identity
           else
             index = @version.index(value)
-            save_assignment(identity, index, request) unless filter_visitor?( request, identity )
+            save_assignment(identity, index, request) unless filter_visitor?(request, identity)
 
             raise ArgumentError, "No alternative #{value.inspect} for #{name}" unless index
             if (connection.ab_showing(id, identity) && connection.ab_showing(id, identity) != index) ||
@@ -392,7 +394,6 @@ module Vanity
         super
 
         outcome = @version.complete!(outcome)
-
         # TODO: logging
         connection.ab_set_outcome(id, outcome || 0)
       end
@@ -403,7 +404,7 @@ module Vanity
         connection.destroy_experiment(id)
         super
       end
-      
+
       # clears all collected data for the experiment
       def reset
         return unless @playground.collecting?
@@ -428,19 +429,19 @@ module Vanity
       # and declared.
       def save
         if @saved
-          warn "Experiment #{name} has already been saved"
+          Vanity.logger.warn("Experiment #{name} has already been saved")
           return
         end
         @saved = true
         @version.save
         super
         if @metrics.nil? || @metrics.empty?
-          warn "Please use metrics method to explicitly state which metric you are measuring against."
+          Vanity.logger.warn("Please use metrics method to explicitly state which metric you are measuring against.")
           metric = @playground.metrics[id] ||= Vanity::Metric.new(@playground, name)
           @metrics = [metric]
         end
         @metrics.each do |metric|
-          metric.hook &method(:track!)
+          metric.hook(&method(:track!))
         end
       end
 
@@ -519,7 +520,7 @@ module Vanity
 
       def filter_visitor?(request, identity)
         @playground.request_filter.call(request) || 
-          ( @request_filter_block && @request_filter_block.call(request, identity) )
+          (@request_filter_block && @request_filter_block.call(request, identity))
       end
 
       def call_on_assignment_if_available(identity, index)

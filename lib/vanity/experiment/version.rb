@@ -99,7 +99,7 @@ module Vanity
               result = @outcome_is.call
               outcome = result.id if Alternative === result && result.experiment == experiment
             rescue
-              warn "Error in Version#complete!: #{$!}"
+              Vanity.logger.warn "Error in Version#complete!: #{$!}"
             end
           else
             best = score.best
@@ -124,10 +124,10 @@ module Vanity
         fail "Experiment #{name} needs at least two alternatives" unless @alternatives.size >= 2
         if !@is_default_set
           default(@alternatives.first)
-          warn "No default alternative specified; choosing #{@default} as default."
+          Vanity.logger.warn("No default alternative specified; choosing #{@default} as default.")
         elsif alternative(@default).nil?
           #Specified a default that wasn't listed as an alternative; warn and override.
-          warn "Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead."
+          Vanity.logger.warn("Attempted to set unknown alternative #{@default} as default! Using #{@alternatives.first} instead.")
           #Set the instance variable directly since default(value) is no longer defined
           @default = @alternatives.first
         end
@@ -369,19 +369,19 @@ module Vanity
       #
       # The choice alternative is set only if its probability is higher or
       # equal to the specified probability (default is 90%).
-      def bayes_bandit_score(probability = DEFAULT_PROBABILITY)
+      def bayes_bandit_score(probability = AbTest::DEFAULT_PROBABILITY)
         begin
           require "backports/1.9.1/kernel/define_singleton_method" if RUBY_VERSION < "1.9"
           require "integration"
           require "rubystats"
         rescue LoadError
-          fail "to use bayes_bandit_score, install integration and rubystats gems"
+          fail("to use bayes_bandit_score, install integration and rubystats gems")
         end
 
         begin
           require "gsl"
         rescue LoadError
-          warn "for better integration performance, install gsl gem"
+          Vanity.logger.warn("for better integration performance, install gsl gem")
         end
 
         BayesianBanditScore.new(alternatives, outcome).calculate!

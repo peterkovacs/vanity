@@ -48,7 +48,7 @@ test:
   collecting: false
 production:
   adapter: redis
-  connection: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
+  url: redis://<%= ENV["REDIS_USER"] %>:<%= ENV["REDIS_PASSWORD"] %>@<%= ENV["REDIS_HOST"] %>:<%= ENV["REDIS_PORT"] %>/0
 ```
 
 If you want to use your test environment with RSpec you will need to add an
@@ -65,8 +65,7 @@ test:
 Add to your Gemfile:
 
 ```ruby
-gem "bson_ext"
-gem "mongo"
+gem "mongo", "~> 2.0" # For Mongo 1.x support see Vanity versions 2.1 and below.
 ```
 
 A sample `config/vanity.yml` might look like:
@@ -100,10 +99,17 @@ development:
   active_record_adapter: sqlite3
   database: db/development.sqlite3
 test:
-  collecting: false
-production:
   adapter: active_record
   active_record_adapter: default
+  collecting: false
+production:
+  active_record_adapter: postgresql
+  <% uri = URI.parse(ENV['DATABASE_URL']) %>
+  host:     <%= uri.host %>
+  username: <%= uri.username %>
+  password: <%= uri.password %>
+  port:     <%= uri.port %>
+  database: <%= uri.path.sub('/', '') %>
 ```
 
 If you're going to store data in the database, run the generator and
@@ -242,13 +248,13 @@ your view no participants will be recorded.
 
 Here's what's tested and known to work:
 
-    Ruby 2.0
-      Persistence: Redis, Mongo, ActiveRecord
-      Rails: 3.2, 4.1, 4.2
     Ruby 2.1
       Persistence: Redis, Mongo, ActiveRecord
       Rails: 3.2, 4.1, 4.2
     Ruby 2.2
+      Persistence: Redis, Mongo, ActiveRecord
+      Rails: 3.2, 4.1, 4.2
+    Ruby 2.3
       Persistence: Redis, Mongo, ActiveRecord
       Rails: 3.2, 4.1, 4.2
 
@@ -259,6 +265,9 @@ an experiment. This may be done using the `chooses` method. For example:
 
 ```ruby
 Vanity.playground.experiment(:price_options).chooses(19)
+```
+
+See [the docs on testing](http://vanity.labnotes.org/ab_testing.html#test) for more.
 
 ## Updating documentation
 
