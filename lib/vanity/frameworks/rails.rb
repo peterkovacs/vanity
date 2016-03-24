@@ -123,7 +123,7 @@ module Vanity
         if symbol && (@object = symbol)
           class << self
             define_method :vanity_identity do
-              @vanity_identity = (String === @object ? @object : @object.id)
+              @vanity_identity = (String === @object ? @object : @object.to_param)
             end
           end
         else
