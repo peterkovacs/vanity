@@ -1,3 +1,4 @@
+<% unless metric.exclude %>
 <h3><%=vanity_h metric.name %></h3>
 <%= vanity_simple_format(vanity_h(metric.description), :class=>"description") %>
 <%= vanity_html_safe(%Q{<div class="chart"></div>
@@ -12,3 +13,4 @@
     </script>}
   )
 %>
+<% end %>

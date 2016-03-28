@@ -1,8 +1,10 @@
 <div class="row-fluid metrics">
   <% metrics.sort_by { |id, metric| metric.name }.each do |id, metric| %>
-    <div class="col-xs-12 metric panel panel-default" id="metric_<%= id %>">
-      <%= render :file=>Vanity.template("_metric"), :locals=>{:id=>id, :metric=>metric} %>
-    </div>
+    <% unless metric.exclude %>
+      <div class="col-xs-12 metric panel panel-default" id="metric_<%= id %>">
+        <%= render :file=>Vanity.template("_metric"), :locals=>{:id=>id, :metric=>metric} %>
+      </div>
+    <% end %>
   <% end %>
 </div>
 <form id="milestones">

@@ -204,6 +204,13 @@ module Vanity
       @description
     end
 
+    # Exclude this metric on the results dashboard
+    #
+    def exclude( exclude_from_graph = nil )
+      @exclude_from_graph = exclude_from_graph unless exclude_from_graph.nil?
+      @exclude_from_graph
+    end
+
     # Given two arguments, a start date and an end date (inclusive), returns an
     # array of measurements. All metrics must implement this method.
     def values(from, to)
