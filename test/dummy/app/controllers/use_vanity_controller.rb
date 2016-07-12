@@ -20,4 +20,11 @@ class UseVanityController < ActionController::Base
     TestModel.new.test_method
     render :inline => "<%= vanity_js -%>"
   end
+
+  def replace_identity
+    Vanity.ab_test(:pie_or_cake)
+    vanity_replace_identity_with( 'new_identity' )
+
+    render :inline => "<%= vanity_js -%>"
+  end
 end

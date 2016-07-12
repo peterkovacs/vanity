@@ -142,6 +142,10 @@ module Vanity
         fail "Not implemented"
       end
 
+      # Removes a participant from all experiments.
+      def ab_remove_participant( identity )
+        fail "Not implemented"
+      end
     end
   end
 end

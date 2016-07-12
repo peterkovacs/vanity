@@ -107,6 +107,16 @@ module Vanity
         result
       end
       private :build_vanity_cookie
+
+      # 
+      # Replace the current vanity identity with a new identity.
+      # This will set the Vanity cookie using this new identity, in addition to
+      # removing the old identity from the database.
+      def vanity_replace_identity_with( new_identity )
+        Vanity.playground.remove_participant!( vanity_identity )
+        @vanity_identity = new_identity
+        cookies[Vanity.configuration.cookie_name] = build_vanity_cookie(new_identity)
+      end
     end
 
     module UseVanityMailer

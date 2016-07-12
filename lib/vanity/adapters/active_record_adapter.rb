@@ -297,6 +297,22 @@ module Vanity
         record && record.destroy
       end
 
+      def ab_remove_participant( identity )
+        VanityExperiment.transaction do
+          experiments = VanityExperiment.where( enabled: true ).to_a
+          experiments.each do |experiment|
+            if participant = VanityParticipant.retrieve( experiment.experiment_id, identity, create = false )
+              if alternative = participant.converted
+                experiment.increment_conversions( alternative, -1 )
+              end
+
+              participant.destroy
+            end
+          end
+        end
+      end
+
+
       def to_s
         @options.to_s
       end

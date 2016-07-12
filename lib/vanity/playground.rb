@@ -172,6 +172,10 @@ module Vanity
       metric(id).track!(count)
     end
 
+    def remove_participant!( identity )
+      connection.ab_remove_participant( identity )
+    end
+
     # Returns the experiment. You may not have guessed, but this method raises
     # an exception if it cannot load the experiment's definition.
     #

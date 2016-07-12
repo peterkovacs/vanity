@@ -55,6 +55,13 @@ class UseVanityControllerTest < ActionController::TestCase
     assert_equal 1, experiment(:pie_or_cake).alternatives.map(&:participants).sum
   end
 
+  def test_replace_identity_removes_participant
+    @request.cookies["vanity_id"] = "from_last_time"
+    get :replace_identity
+    assert_equal 0, experiment(:pie_or_cake).alternatives.map(&:participants).sum
+    assert_equal 'new_identity', cookies["vanity_id"]
+  end
+
   def test_does_not_add_invalid_participant_to_experiment
     Vanity.playground.use_js!
     @request.user_agent = "Googlebot/2.1 ( http://www.google.com/bot.html)"

@@ -66,5 +66,9 @@ module Vanity
     def track!(name, count_or_options = 1)
       Vanity.playground.track! name, count_or_options
     end
+
+    def replace_identity_with!( new_identity )
+      Vanity.playground.replace_identity_with!( new_identity )
+    end
   end
 end
