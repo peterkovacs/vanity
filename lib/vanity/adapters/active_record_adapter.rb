@@ -299,7 +299,7 @@ module Vanity
 
       def ab_remove_participant( identity )
         VanityExperiment.transaction do
-          experiments = VanityExperiment.where.not( completed_at: nil )
+          experiments = VanityExperiment.where( completed_at: nil )
           if Vanity.configuration.experiments_start_enabled
             experiments = experiments.where( enabled: [ nil, true ] )
           else
