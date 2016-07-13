@@ -299,7 +299,13 @@ module Vanity
 
       def ab_remove_participant( identity )
         VanityExperiment.transaction do
-          experiments = VanityExperiment.where( enabled: true ).to_a
+          experiments = VanityExperiment.where.not( completed_at: nil )
+          if Vanity.configuration.experiments_start_enabled
+            experiments = experiments.where( enabled: [ nil, true ] )
+          else
+            experiments = experiments.where( enabled: true )
+          end
+
           experiments.each do |experiment|
             if participant = VanityParticipant.retrieve( experiment.experiment_id, identity, create = false )
               if alternative = participant.converted
