@@ -309,7 +309,7 @@ module Vanity
           experiments.each do |experiment|
             if participant = VanityParticipant.retrieve( experiment.experiment_id, identity, create = false )
               if alternative = participant.converted
-                experiment.increment_conversions( alternative, -1 )
+                experiment.increment_conversion( alternative, -1 )
               end
 
               participant.destroy
