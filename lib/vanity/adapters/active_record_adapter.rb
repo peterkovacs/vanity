@@ -297,6 +297,7 @@ module Vanity
         record && record.destroy
       end
 
+      # Removes participant from any experiment in which they have not converted.
       def ab_remove_participant( identity )
         VanityExperiment.transaction do
           experiments = VanityExperiment.where( completed_at: nil )
@@ -308,11 +309,7 @@ module Vanity
 
           experiments.each do |experiment|
             if participant = VanityParticipant.retrieve( experiment.experiment_id, identity, create = false )
-              if alternative = participant.converted
-                experiment.increment_conversion( alternative, -1 )
-              end
-
-              participant.destroy
+              participant.destroy if participant.converted.nil?
             end
           end
         end
