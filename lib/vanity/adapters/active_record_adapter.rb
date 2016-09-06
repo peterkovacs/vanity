@@ -249,7 +249,7 @@ module Vanity
       # Returns an array of [ Date, Converted, Total, Rate ]
       def ab_rolling_conversion_rates( experiment )
         record = VanityExperiment.retrieve(experiment)
-        start_at = record.created_at.to_date + 7.days
+        start_at = [ record.created_at.to_date, Date.today - 30.days ].max + 7.days
         end_at = Date.today
         result = []
 
