@@ -85,6 +85,14 @@ module Vanity
         fail "Not implemented"
       end
 
+      # Returns a series of conversion rates for a rolling 7 day period, 1 per day.
+      # The date given is the *end* date of the 7 day period.  For experiments
+      # that are not yet 7 days old, then only a single point will be given.
+      # Returns an array of [ Date, Rate ]
+      def ab_rolling_conversion_rates( experiment )
+        fail "Not implemented"
+      end
+
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
       def ab_show(experiment, identity, alternative)

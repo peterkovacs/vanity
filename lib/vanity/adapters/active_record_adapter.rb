@@ -243,6 +243,30 @@ module Vanity
         end
       end
 
+      # Returns a series of conversion rates for a rolling 7 day period, 1 per day.
+      # The date given is the *end* date of the 7 day period.  For experiments
+      # that are not yet 7 days old, then only a single point will be given.
+      # Returns an array of [ Date, Converted, Total, Rate ]
+      def ab_rolling_conversion_rates( experiment )
+        record = VanityExperiment.retrieve(experiment)
+        start_at = record.created_at.to_date + 7.days
+        end_at = Date.today
+        result = []
+
+        loop do
+          relation = VanityParticipant.where( experiment_id: experiment.to_s ).where( created_at: ( start_at - 7.days )..start_at )
+          converted = relation.where.not( converted: nil ).count
+          total = relation.count
+          result << [ ( start_at - 7.days )..start_at, converted, total, converted.to_f / total.to_f ]
+
+          break if start_at > end_at
+
+          start_at += 1.day
+        end
+
+        result
+      end
+
       # Pick particular alternative (by index) to show to this particular
       # participant (by identity).
       def ab_show(experiment, identity, alternative)

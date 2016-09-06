@@ -22,6 +22,10 @@
     <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("flot.time.min.js"))) %></script>
     <script type="text/javascript"><%= vanity_html_safe(File.read(Vanity.template("vanity.js"))) %></script>
     <% if respond_to?(:form_authenticity_token) %><script type="text/javascript">document.auth_token = "<%= form_authenticity_token %>"</script><% end %>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load( 'current', {'packages': ['line', 'corechart']} );
+    </script>
   </head>
   <body>
     <div class="vanity container-fluid">
@@ -37,11 +41,6 @@
         <% if experiments.present? %>
           <h1><%= I18n.t 'vanity.experiments' %></h1>
           <%= render :file=>Vanity.template("_experiments"), :locals=>{:experiments=>experiments} %>
-        <% end %>
-
-        <% unless metrics.empty? %>
-          <h1><%= I18n.t 'vanity.metrics' %></h1>
-          <%= render :file=>Vanity.template("_metrics"), :locals=>{:metrics=>metrics, :experiments=>experiments} %>
         <% end %>
       <% else %>
         <div class="alert-danger alert persistance">

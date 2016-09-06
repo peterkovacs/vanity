@@ -162,6 +162,11 @@ module Vanity
         @conversion_rate ||= (participants > 0 ? converted.to_f/participants.to_f  : 0.0)
       end
 
+      # Rolling 7 day conversion rate
+      def data
+        @data ||= connection.ab_rolling_conversion_rates( id )
+      end
+
     protected
 
       # Returns the assigned alternative, previously chosen alternative, or

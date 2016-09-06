@@ -1,0 +1,64 @@
+<div class="panel inner <%= experiment.enabled? ? 'panel-success status_enabled' : 'panel-default status_disabled' %>">
+  <div class="panel-heading">
+    <h3>
+      <%= vanity_h experiment.name %>
+      <small class="type">(<%= experiment.class.friendly_name %>)</small>
+      <small>
+        <% action = experiment.enabled? ? :disable : :enable %>
+        <div class="pull-right enabled-links">
+          <% if experiment.enabled? %><span class="text-success"><%= I18n.t( 'vanity.enabled' ) %></span><% end %>
+          <% if !experiment.enabled? %><span class="text-warning"><%= I18n.t( 'vanity.disabled' ) %></span><% end %>
+          <a class="btn btn-warning btn-xs" href='#' data-id='<%= experiment.id %>' data-url='<%= url_for(:action=>action, :e => experiment.id) %>'>
+            <%= I18n.t( action, scope: 'vanity.act_on_this_experiment' ) %>
+          </a>
+          <a class="btn btn-danger btn-xs button reset" title="<%= I18n.t('vanity.reset') %>" href="#" data-id="<%= experiment.id %>" data-url="<%= url_for(:action=>:reset, :e=>experiment.id) %>">
+            <%= I18n.t 'vanity.reset' %>
+          </a>
+        </div>
+      </small>
+    </h3>
+    <%= experiment.description.to_s.split(/\n\s*\n/).map { |para| vanity_html_safe(%{<p>#{vanity_h para}</p>}) }.join.html_safe %>
+  </div>
+  <% if flash.notice %>
+    <div class="alert alert-info">
+      <%= flash.notice %>
+    </div>
+  <% end %>
+  <div class="baseline" id="baseline_<%=experiment.id%>"></div>
+  <script type="text/javascript">
+    google.charts.setOnLoadCallback(function() {
+      var data = new google.visualization.DataTable();
+      data.addColumn( 'date', 'Date' );
+      data.addColumn( 'number', 'Conversions' );
+      data.addColumn( 'number', 'Participants' );
+      data.addColumn( 'number', 'Rate' );
+      data.addRows( [ <%= raw experiment.data.map{ |range, c, p, r| "[ new Date(#{range.last.year}, #{range.last.month - 1}, #{range.last.day}), #{c}, #{p}, #{r} ]" }.join( ", " ) %> ] )
+
+      var options = {
+        chart: { 
+          title: <%= raw experiment.name.to_json %>,
+          subtitle: <%= raw experiment.description.to_json %>,
+          legend: { position: 'bottom' }
+        },
+        series: {
+          0: { axis: "Visitors" },
+          1: { axis: "Visitors" },
+          2: { axis: "Rate" }
+        },
+        axes: { 
+          y: {
+            Visitors: { label: "Visitors" },
+            Rate: { label: "Conversion Rate" }
+          }
+        },
+        height: 480
+      };
+
+      var chart = new google.charts.Line(document.getElementById(<%= raw "baseline_#{experiment.id}".to_json %>));
+      chart.draw( data, options );
+    });
+  </script>
+
+
+</div>
+

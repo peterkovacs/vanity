@@ -62,7 +62,7 @@
                   <div class="alert alert-danger alert-dismissable" role="alert">
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     <%=I18n.t('vanity.complete_and_confirm_experiment_label', :name=>alt.name)%>
-                    <a class="btn btn-danger btn-med button chooses" href="#" data-id="<%=version.id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.unversioned_id, :a=>alt.id, :confirmed=>alt.id)%>" title="<%=I18n.t('vanity.complete_and_confirm_experiment', name: alt.name)%>"><%=I18n.t('vanity.confirm')%></a>
+                    <a class="btn btn-danger btn-med button chooses" href="#" data-id="<%=experiment.unversioned_id%>" data-url="<%=url_for(:action=>:complete, :e=>experiment.unversioned_id, :a=>alt.id, :confirmed=>alt.id)%>" title="<%=I18n.t('vanity.complete_and_confirm_experiment', name: alt.name)%>"><%=I18n.t('vanity.confirm')%></a>
                   </div>
                 <% end %>
                 <ul class="actions nav nav-pills">

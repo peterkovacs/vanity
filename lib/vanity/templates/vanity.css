@@ -2,3 +2,4 @@
 .vanity .experiment .status_enabled small.enabled-links { background: #EFE }
 .vanity .experiment .status_disabled small.enabled-links { background: #FEE }
 .vanity .metric .marking.label { position: absolute; bottom: 2em; color: #c66; font-size: 80% }
+.vanity .baseline { padding: 10px }
