@@ -34,7 +34,6 @@ class RailsDashboardTest < ActionController::TestCase
     assert_response :success
     assert @response.body =~ %r{div class="vanity container-fluid"}
     assert @response.body =~ %r{<h1>Experiments</h1>}
-    assert @response.body =~ %r{<h1>Metrics</h1>}
   end
 
   def test_index_not_collecting
