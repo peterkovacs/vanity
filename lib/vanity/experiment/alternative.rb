@@ -7,7 +7,7 @@ module Vanity
       def initialize(version, id, value) #, participants, converted, conversions)
         @version = version
         @id = id
-        @name = I18n.t('vanity.option_number', :char=>(@id + 65).chr.upcase)
+        @name = I18n.t('vanity.option_number', :char=>((@id||0) + 65).chr.upcase)
         @value = value
       end
 

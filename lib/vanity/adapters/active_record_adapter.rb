@@ -220,15 +220,27 @@ module Vanity
       # :conversions.
       def ab_counts(experiment, alternative)
         record = VanityExperiment.retrieve(experiment)
-        participants = VanityParticipant.where(:experiment_id => experiment.to_s, :seen => alternative).count
-        converted = VanityParticipant.where(:experiment_id => experiment.to_s, :converted => alternative).count
-        conversions = record.vanity_conversions.where(:alternative => alternative).sum(:conversions)
-
-        {
-          :participants => participants,
-          :converted => converted,
-          :conversions => conversions
-        }
+        if alternative
+          participants = VanityParticipant.where(:experiment_id => experiment.to_s, :seen => alternative).count
+          converted = VanityParticipant.where(:experiment_id => experiment.to_s, :converted => alternative).count
+          conversions = record.vanity_conversions.where(:alternative => alternative).sum(:conversions)
+          
+          {
+            :participants => participants,
+            :converted => converted,
+            :conversions => conversions
+          }
+        else
+          participants = VanityParticipant.where(:experiment_id => experiment.to_s).count
+          converted = VanityParticipant.where(:experiment_id => experiment.to_s).where.not( converted: nil ).count
+          conversions = record.vanity_conversions.sum(:conversions)
+          
+          {
+            :participants => participants,
+            :converted => converted,
+            :conversions => conversions
+          }
+        end
       end
 
       # Pick particular alternative (by index) to show to this particular

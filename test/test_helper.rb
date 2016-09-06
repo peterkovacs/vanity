@@ -126,6 +126,17 @@ module VanityTestHelpers
     Vanity.playground.experiments[id] = experiment
   end
 
+  def new_baseline_test( name, options = {}, &block )
+    enable = options.fetch(:enable, true)
+    id = name.to_s.downcase.gsub(/\W/, "_").to_sym
+    experiment = Vanity::Experiment::BaselineTest.new(Vanity.playground, id, name)
+    experiment.instance_eval &block if block
+    experiment.save
+    # new experiments start off as disabled, enable them for testing
+    experiment.enabled = true if enable
+    Vanity.playground.experiments[id] = experiment
+  end
+
   # Returns named experiment.
   def experiment(name)
     Vanity.playground.experiment(name)

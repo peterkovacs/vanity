@@ -248,6 +248,13 @@ module Vanity
         end
       end
 
+      def baseline_test(name)
+        @_vanity_experiments ||= {}
+        request = respond_to?(:request) ? self.request : nil
+        @_vanity_experiments[name] ||= Vanity.playground.experiment(name.to_sym).choose(request)
+        true
+      end
+
       # Generate url with the identity of the current user and the metric to track on click
       def vanity_track_url_for(identity, metric, options = {})
         options = options.merge(:_identity => identity, :_track => metric)

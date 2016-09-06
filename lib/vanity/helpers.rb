@@ -50,6 +50,18 @@ module Vanity
       end
     end
 
+    def baseline_test(name)
+      request = respond_to?(:request) ? self.request : nil
+
+      if Vanity.playground.using_js?
+        Vanity.context.vanity_store_experiment_for_js name, Vanity.playground.experiment(name).choose(request)
+      else
+        Vanity.playground.experiment(name).choose(request)
+      end
+
+      true
+    end
+
     # Tracks an action associated with a metric. Useful for calling from a
     # Rack handler. Note that a user should already be added to an experiment
     # via #ab_test before this is called - otherwise, the conversion will be
